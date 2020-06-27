@@ -10,13 +10,13 @@ keepingyouawake
 dozer
 the-unarchiver
 skype
-macs-fan-control
+# macs-fan-control
 nightowl
-firefox
-font-hack-nerd-font
-font-fira-code
-android-platform-tools
+# firefox
+# font-hack-nerd-font
+# font-fira-code
+# android-platform-tools
 mos
-barrier
+# barrier
 google-chrome
-postgres
+# postgres

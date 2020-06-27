@@ -134,12 +134,14 @@ function install_homebrew() {
     # feel free to upgrade cask and tool list to suit your needs
     # install all casks one by one
     while read each_cask; do
+        [[ $each_cask =~ ^#.* ]] && echo "[-] Ignoring $each_cask" && continue
         echo -ne "[+] Installing cask $each_cask ${NC}\n"
         run_this_command "brew cask install $each_cask"
     done <packages/commandlineCaskTools.txt
 
     # install all packages one by one
     while read each_package; do
+        [[ $each_package =~ ^#.* ]] && echo "[-] Ignoring $each_package" && continue
         echo -ne "[+] Installing package $each_package ${NC}\n"
         run_this_command "brew install $each_package"
     done <packages/commandlineTools.txt

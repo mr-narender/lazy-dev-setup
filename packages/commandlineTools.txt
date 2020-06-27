@@ -15,7 +15,7 @@ node
 ffmpeg
 x264
 xvid
-yarn
-webpack
-handbrake
-nginx
+# yarn
+# webpack
+# handbrake
+# nginx
