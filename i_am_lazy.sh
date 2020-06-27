@@ -102,6 +102,20 @@ function tweak_macOS_configuration() {
     touch ~/.hushlogin
 }
 
+function run_this_command() {
+    _command=$1
+    osascript <<EOF
+        tell application "Terminal"
+            set w to do script "$_command && exit"
+            repeat
+                delay 5
+                if not busy of w then exit repeat
+            end repeat
+            quit application "Terminal"
+        end tell
+EOF
+}
+
 # install home brew and packages
 function install_homebrew() {
     echo -ne "[!] Installing Homebrew\n"
@@ -111,72 +125,24 @@ function install_homebrew() {
     brew analytics off
 
     # tap all necessary casks, uncomment as needed
-    brew tap homebrew/cask
-    brew tap homebrew/cask-fonts
-    brew tap buo/cask-upgrade
-    # brew tap mongodb/brew
+    run_this_command "brew tap homebrew/cask"
+    run_this_command "brew tap homebrew/cask-fonts"
+    run_this_command "brew tap buo/cask-upgrade"
+    # run_this_command "brew tap mongodb/brew"
 
     # install minimal packages
-    # feel free to upgrade it to suit your need
-    declare commandlineCaskTools=(
-        java \ # java installation, if you need java runtime environemtn
-        iterm2 \ # I prefer iterm against Apple Terminal.app
-        adguard \ # block ads \(they are good\)
-        kap \ # little recording tool
-        spectacle \ # Move and resize windows with ease
-        appcleaner \ # easy app cleanup
-        visual-studio-code \ # I'm sure you this, :P
-        kite \ # Kite is the AI assistant giving developers superpowers.
-        keepingyouawake \ # Caffeine for mac
-        dozer \ # hide icon from tray
-        the-unarchiver \ # The Unarchiver is the only app you need to open RAR on Mac
-        skype \ # skype for 
-        macs-fan-control \ # Macs Fan Control
-        nightowl \ # Easily toggle macos Mojaves dark mode
-        firefox \ # firefox for macOS
-        font-hack-nerd-font font-fira-code \ # fonts
-        android-platform-tools \ # android adb and fastboot tools
-        mos \ # easy mouse scroll
-        barrier \ # KVM switch for multiplse OS 
-        google-chrome \ # google chrome for macOS
-        postgres \ # postgresql for macOS
-        # feel free to add more toold if need to
-    )
-
+    # feel free to upgrade cask and tool list to suit your needs
     # install all casks one by one
-    for each in ${commandlineCaskTools[*]}; do
-        echo -ne "${GREEN}Installing cask $each ${NC}\n"
-        brew cask install $each
-    done
+    while read each_cask; do
+        echo -ne "[+] Installing cask $each_cask ${NC}\n"
+        run_this_command "brew cask install $each_cask"
+    done <packages/commandlineCaskTools.txt
 
-    declare commandlineTools=(
-        pkg-config \ # Manage compile and link flags for libraries
-        aria2  \ # Download with resuming and segmented downloading
-        gnutls  \ # GNU Transport Layer Security (TLS) Library
-        readline  \ # Library for command-line editing
-        coreutils \ # GNU File, Shell, and Text utilities
-        openssl \ # Cryptography and SSL/TLS Toolkit
-        ssh-copy-id \ # Add a public key to a remote machine's authorized_keys file
-        wget \ # Internet file retriever
-        python3 \ # Interpreted, interactive, object-oriented programming language
-        git \ # Distributed revision control system
-        git-lfs \ # Git extension for versioning large files
-        fontconfig \ # XML-based font configuration API for X Windows
-        ruby \ # Powerful, clean, object-oriented scripting language
-        node \ # Platform built on V8 to build network applications
-        ffmpeg \ # Play, record, convert, and stream audio and video
-        x264 \ # H.264/AVC encoder
-        xvid \ # High-performance, high-quality MPEG-4 video library
-        yarn \ # JavaScript package manager
-        webpack \ # Bundler for JavaScript and friends
-        handbrake # Open-source video transcoder available for Linux, Mac, and Windows
-        nginx \ # HTTP\(S\) server and reverse proxy, and IMAP/POP3 proxy server
-        # mongodb \ # mongo database
-    )
-
-    for each in ${commandlineTools[*]}; do
-        brew install $each
-    done
+    # install all packages one by one
+    while read each_package; do
+        echo -ne "[+] Installing package $each_package ${NC}\n"
+        run_this_command "brew install $each_package"
+    done <packages/commandlineTools.txt
 }
 
 # One time configuration
@@ -204,7 +170,7 @@ function main() {
     install_homebrew
 
     # install git lfs
-    git lfs install
+    run_this_command "git lfs install"
 
     # enable nginx as service
     if [[ -e $(which nginx) ]]; then
@@ -217,9 +183,9 @@ function main() {
     fi
 
     # update pip and setuptools
-    echo -ne "${GREEN}[!] Installing/Updating setuptools${NC}\n"
-    /usr/local/bin/pip3 install --upgrade pip setuptools
-    /usr/local/bin/pip3 install virtualenvwrapper
+    echo -ne "[+] Installing/Updating setuptools${NC}\n"
+    run_this_command "/usr/local/bin/pip3 install --upgrade pip setuptools"
+    run_this_command "/usr/local/bin/pip3 install virtualenvwrapper"
 
     # change theme, I like smyck
     mkdir -p ~/.vim/colors && wget -q https://raw.githubusercontent.com/hukl/Smyck-Color-Scheme/master/smyck.vim -O ~/.vim/colors/smyck.vim
@@ -228,13 +194,12 @@ function main() {
     mkdir -p ~/.local/share/fonts/
     wget -q https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf -O ~/.local/share/fonts/PowerlineSymbols.otf
     wget -q https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf -O ~/.local/share/fonts/10-powerline-symbols.conf
-    fc-cache -vf ~/.local/share/fonts/
 
     # install powerline fonts and cleanup
-    git clone https://github.com/powerline/fonts.git --depth=1 && cd fonts && ./install.sh && cd .. && rm -rf fonts
+    run_this_command "git clone https://github.com/powerline/fonts.git --depth=1 && cd fonts && ./install.sh && cd .. && rm -rf fonts"
 
     # get the meslo font for `p10k configure`
-    echo -ne "${GREEN}[!] Get MesloLGS fonts\n"
+    echo -ne "[+] Get MesloLGS fonts\n"
     meslo_regular="https://github.com/romkatv/dotfiles-public/raw/master/.local/share/fonts/NerdFonts/MesloLGS NF Regular.ttf"
     meslo_bold="https://github.com/romkatv/dotfiles-public/raw/master/.local/share/fonts/NerdFonts/MesloLGS NF Bold.ttf"
     meslo_italic="https://github.com/romkatv/dotfiles-public/raw/master/.local/share/fonts/NerdFonts/MesloLGS NF Italic.ttf"
@@ -244,22 +209,24 @@ function main() {
     wget -q "$meslo_bold" -O ~/Library/Fonts/MesloLGS\ NF\ Bold.ttf
     wget -q "$meslo_italic" -O ~/Library/Fonts/MesloLGS\ NF\ Italic.ttf
     wget -q "$meslo_bold_italic" -O ~/Library/Fonts/MesloLGS\ NF\ Bold\ Italic.ttf
+    run_this_command "fc-cache -vf ~/.local/share/fonts/"
 
     # one last step
     # set zsh and oh-my-zsh
-    brew install zsh zsh-completions
-    rm -f ~/.zcompdump
-    compinit
+    run_this_command "brew install zsh zsh-completions"
+    run_this_command "rm -f ~/.zcompdump && compinit"
     chmod go-w '/usr/local/share'
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-    git clone https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/themes/powerlevel10k
+    run_this_command "git clone https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/themes/powerlevel10k"
 
     # finally change shell to zsh
     command -v zsh | sudo tee -a /etc/shells
     sudo chsh -s $(command -v zsh)
     chsh -s $(command -v zsh)
-    osascript -e 'tell application "Terminal" to do script "compaudit | xargs chmod g-w,o-w"'
+    run_this_command "compaudit | xargs chmod g-w,o-w"
 
+    echo "[!] please consider donating me if you can, helps me a meal for the day."
+    open -a Safari "https://www.paypal.me/nar3nd3rs1ngh"
     # this script can be tweaked to install pretty much anything from a pkg or DMG file.
 }
 
