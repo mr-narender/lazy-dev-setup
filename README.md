@@ -22,7 +22,7 @@ cd lazy-dev-setup && chmod +x i_am_lazy.sh && ./i_am_lazy.sh
 # Options Included:
 
 - [x] Sets system hostname systemwide
-- [x] Install basic dev packages( cen be tweaked to user 's needs)
+- [x] Install basic dev packages (can be tweaked to user's needs)
 - [x] Tweak system configuration For easier management
 - [x] Installs home brew
 - [x] Installs Themes For Vim
