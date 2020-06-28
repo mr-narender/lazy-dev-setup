@@ -28,7 +28,7 @@ packages/commandlineCaskTools.txt
 ## just run
 
 ```
-git clone https: //github.com/nar3nd3r/lazy-dev-setup
+git clone https://github.com/nar3nd3r/lazy-dev-setup
 cd lazy-dev-setup && chmod +x i_am_lazy.sh && ./i_am_lazy.sh
 ```
 
