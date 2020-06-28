@@ -13,7 +13,7 @@ function readChoice() {
 # add user to sudoers
 function add_to_sudoers() {
     sudo sed -i '' '$a\
-    "$USER"        ALL\=\(ALL\) NOPASSWD: ALL' /etc/sudoers
+    '"$USER"'        ALL\=\(ALL\) NOPASSWD: ALL' /etc/sudoers
     return $?
 }
 
