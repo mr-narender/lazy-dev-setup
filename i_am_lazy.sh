@@ -32,21 +32,40 @@ function set_system_hostname() {
 # wait for xcode cli tools installation
 function wait_for_xcode_cli_tools_installation() {
     choice='n'
-    sudo xcode-select --install
-    echo -ne "\nShould we proceed further (y/N):  \b"
     while [[ $choice == 'n' || $choice == 'N' ]]; do
-        if [[ "$(sudo xcode-select --install 2>&1)" != "xcode-select: error: command line tools are already installed, use \"Software Update\" to install updates" ]]; then
-            wait_for_xcode_cli_tools_installation
-        fi
         readChoice choice
         if [[ $choice == 'y' || $choice == 'Y' ]]; then
             echo -ne "\n"
+            if [[ -z `xcode-select -p` ]]
+                then
+                sudo xcode-select --install 2>& 1 > /dev/null
+                echo -ne "\nShould we proceed further (y/N):  \b"
+                wait_for_xcode_cli_tools_installation
+            fi
             break
         else
             sleep 1
         fi
     done
     return $?
+}
+
+
+function run_this_command() {
+    _command=$1
+    osascript <<EOF
+        tell application "Terminal"
+            activate window 2
+            tell window 2
+              set w to do script "$_command && exit"
+              repeat
+                delay 5
+                if not busy of w then exit repeat
+              end repeat
+             end tell
+          close (get window 1)
+        end tell
+EOF
 }
 
 # tweak macOS configuration
@@ -102,20 +121,6 @@ function tweak_macOS_configuration() {
     touch ~/.hushlogin
 }
 
-function run_this_command() {
-    _command=$1
-    osascript <<EOF
-        tell application "Terminal"
-            set w to do script "$_command && exit"
-            repeat
-                delay 5
-                if not busy of w then exit repeat
-            end repeat
-            quit application "Terminal"
-        end tell
-EOF
-}
-
 # install home brew and packages
 function install_homebrew() {
     echo -ne "[!] Installing Homebrew\n"
@@ -151,7 +156,8 @@ function install_homebrew() {
 function main() {
 
     echo -ne "[+] First thing first, adding user to sudoers file\n"
-    if [[ add_to_sudoers -gt 0 ]]; then
+    add_to_sudoers
+    if [[ $? -gt 0 ]]; then
         echo -ne "Did you enter the right password.?\n"
         return 1
     fi
@@ -160,9 +166,14 @@ function main() {
     set_system_hostname || exit
 
     # we need xcode command line tool first
-    echo -ne "[+] please allow to install xcode command line tools to be installed from user interface popup\n"
-    # initially its gonna take a while to install xcode command line tools
-    wait_for_xcode_cli_tools_installation || exit
+    if [[ -z `xcode-select -p` ]]
+    then
+        # initially its gonna take a while to install xcode command line tools
+        echo -ne "[+] Please allow xcode command line tools to be installed \n"
+        sudo xcode-select --install 2>& 1 > /dev/null
+        echo -ne "\nShould we proceed further (y/N):  \b"
+        wait_for_xcode_cli_tools_installation || exit
+    fi
 
     # tweak system setting, personal preference
     # feel free to comment below line if you dont like them
@@ -218,8 +229,9 @@ function main() {
     run_this_command "brew install zsh zsh-completions"
     run_this_command "rm -f ~/.zcompdump && compinit"
     chmod go-w '/usr/local/share'
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-    run_this_command "git clone https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/themes/powerlevel10k"
+    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
+
 
     # finally change shell to zsh
     command -v zsh | sudo tee -a /etc/shells
