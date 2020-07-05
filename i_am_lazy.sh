@@ -36,9 +36,8 @@ function wait_for_xcode_cli_tools_installation() {
         readChoice choice
         if [[ $choice == 'y' || $choice == 'Y' ]]; then
             echo -ne "\n"
-            if [[ -z `xcode-select -p` ]]
-                then
-                sudo xcode-select --install 2>& 1 > /dev/null
+            if [[ -z $(xcode-select -p) ]]; then
+                sudo xcode-select --install 2>&1 >/dev/null
                 echo -ne "\nShould we proceed further (y/N):  \b"
                 wait_for_xcode_cli_tools_installation
             fi
@@ -49,7 +48,6 @@ function wait_for_xcode_cli_tools_installation() {
     done
     return $?
 }
-
 
 function run_this_command() {
     _command=$1
@@ -166,11 +164,10 @@ function main() {
     set_system_hostname || exit
 
     # we need xcode command line tool first
-    if [[ -z `xcode-select -p` ]]
-    then
+    if [[ -z $(xcode-select -p) ]]; then
         # initially its gonna take a while to install xcode command line tools
         echo -ne "[+] Please allow xcode command line tools to be installed \n"
-        sudo xcode-select --install 2>& 1 > /dev/null
+        sudo xcode-select --install 2>&1 >/dev/null
         echo -ne "\nShould we proceed further (y/N):  \b"
         wait_for_xcode_cli_tools_installation || exit
     fi
@@ -224,20 +221,26 @@ function main() {
     wget -q "$meslo_bold_italic" -O ~/Library/Fonts/MesloLGS\ NF\ Bold\ Italic.ttf
     run_this_command "fc-cache -vf ~/.local/share/fonts/"
 
-    # one last step
     # set zsh and oh-my-zsh
     run_this_command "brew install zsh zsh-completions"
     run_this_command "[[ -e ~/.zcompdump ]] && rm -f ~/.zcompdump || compinit"
+    run_this_command "compaudit | xargs chmod g-w,o-w"
     chmod go-w '/usr/local/share'
-    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
-
 
     # finally change shell to zsh
     command -v zsh | sudo tee -a /etc/shells
     sudo chsh -s $(command -v zsh)
     chsh -s $(command -v zsh)
-    run_this_command "compaudit | xargs chmod g-w,o-w"
+
+    # one last step
+    echo -ne "[+] Installing oh-my-zsh\n"
+    run_this_command "curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh"
+
+    echo -ne "[+] Installing powerlevel10k\n"
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
+
+    # open a terminal here for virtualenv to do a quick self configuration
+    run_this_command "echo 'All Good'"
 
     echo "[!] please consider donating me if you can, helps me a meal for the day."
     open -a Safari "https://www.paypal.me/nar3nd3rs1ngh"

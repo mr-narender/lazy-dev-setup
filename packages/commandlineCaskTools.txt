@@ -5,8 +5,8 @@ kap
 spectacle
 appcleaner
 visual-studio-code
-kite
-keepingyouawake
+# kite
+# keepingyouawake
 dozer
 the-unarchiver
 skype
@@ -14,9 +14,9 @@ skype
 nightowl
 # firefox
 # font-hack-nerd-font
-# font-fira-code
+font-fira-code
 # android-platform-tools
-mos
+# mos
 # barrier
-google-chrome
+# google-chrome
 # postgres
