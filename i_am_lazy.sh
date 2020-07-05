@@ -227,7 +227,7 @@ function main() {
     # one last step
     # set zsh and oh-my-zsh
     run_this_command "brew install zsh zsh-completions"
-    run_this_command "rm -f ~/.zcompdump && compinit"
+    run_this_command "[[ -e ~/.zcompdump ]] && rm -f ~/.zcompdump || compinit"
     chmod go-w '/usr/local/share'
     sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
