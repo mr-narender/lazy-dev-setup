@@ -19,3 +19,4 @@ xvid
 # webpack
 # handbrake
 # nginx
+rclone
